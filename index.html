@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai.min.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Web Text Editor</title>
+  <title>Text Editor</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -164,7 +165,7 @@
   <div class="menu-bar">
     <button onclick="newPage()">New</button>
     <button onclick="openFiles()">Open Files</button>
-    <button onclick="uploadFolder()">Upload Folder</button>
+    <button onclick="uploadFolder()">Open Folder</button>
     <button onclick="saveFile()">Save</button>
     <button onclick="closePage()">Close File</button>
   </div>
@@ -174,8 +175,11 @@
       <h3>Pages</h3>
       <ul id="pageList"></ul>
     </div>
+
+    
     <div class="code-area">
       <textarea id="editor"></textarea>
+      
       <div id="readme" class="readme-container" style="display:none"></div>
     </div>
   </div>
@@ -185,7 +189,11 @@
     <span id="cursorPos">Ln 1, Col 1</span>
   </div>
 
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <script>
+
+    
     const editor = document.getElementById('editor');
     const readme = document.getElementById('readme');
     const cursorPos = document.getElementById('cursorPos');
