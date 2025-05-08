@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Text Editor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: monospace;
+      background-color: #1e1e2f;
+      color: #ccc;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .menu-bar {
+      background: #2d2d3a;
+      padding: 6px 12px;
+      display: flex;
+      gap: 20px;
+    }
+    .menu-bar button {
+      background: none;
+      color: #ccc;
+      border: none;
+      font-family: verdana;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .menu-bar button:hover {
+      color: white;
+    }
+    .editor-wrapper {
+      flex: 1;
+      display: flex;
+    }
+    .sidebar {
+      width: 180px;
+      background: #252537;
+      padding: 10px;
+      border-right: 1px solid #333;
+      overflow-y: auto;
+    }
+    .sidebar h3 {
+      color: #aaa;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .sidebar li {
+      padding: 6px 10px;
+      color: #ddd;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      position: relative;
+      text-decoration: none;
+    }
+    .sidebar li.active {
+      background: #444;
+    }
+    .sidebar li:hover {
+      background: #333;
+    }
+    .code-area {
+      flex: 1;
+      background: #1e1e2f;
+      padding: 10px;
+      overflow: auto;
+    }
+    textarea, .readme-container {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      color: #f8f8f2;
+      font-family: monospace;
+      font-size: 14px;
+      outline: none;
+      resize: none;
+    }
+    .readme-container {
+      padding: 10px;
+    }
+    .readme-container a {
+      color: #66d9ef;
+      text-decoration: none;
+    }
+    .readme-container a:hover {
+      
+    }
+
+    
+    .underline:hover {
+      text-decoration: underline;
+    }
+    .readme-container pre {
+      background: #2d2d3a;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .status-bar {
+      height: 28px;
+      background: #181822;
+      padding: 4px 10px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #333;
+    }
+    .folder-item {
+      padding-left: 20px;
+      color: #888;
+      display: none;
+    }
+    .folder-name {
+      color: #66d9ef;
+      position: relative;
+      padding-left: 15px;
+    }
+    .folder-name::before {
+      content: '▶';
+      position: absolute;
+      left: 0;
+      font-size: 10px;
+    }
+    .folder-name.expanded::before {
+      content: '▼';
+    }
+    .folder-name.expanded + ul .folder-item {
+      display: block;
+    }
+    .folder-contents {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+
+.links li {
+  font-size:16px;
+}
+
+.links {
+  padding-left:10px;
+}
+.updateLog li {
+  margin-left: 0px;
+  line-height:25px;
+  display:block;
+  list-style-type: disc;
+}
+   
+  </style>
+</head>
+<body>
+  <div class="menu-bar">
+    <button onclick="newPage()">New</button>
+    <button onclick="openFiles()">Open Files</button>
+    <button onclick="uploadFolder()">Upload Folder</button>
+    <button onclick="saveFile()">Save</button>
+    <button onclick="closePage()">Close File</button>
+  </div>
+
+  <div class="editor-wrapper">
+    <div class="sidebar">
+      <h3>Pages</h3>
+      <ul id="pageList"></ul>
+    </div>
+    <div class="code-area">
+      <textarea id="editor"></textarea>
+      <div id="readme" class="readme-container" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span id="fileName">Overview</span>
+    <span id="cursorPos">Ln 1, Col 1</span>
+  </div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const readme = document.getElementById('readme');
+    const cursorPos = document.getElementById('cursorPos');
+    const pageList = document.getElementById('pageList');
+    const fileName = document.getElementById('fileName');
+
+    let pages = {};
+    let currentPage = '';
+    let folders = {};
+
+    editor.addEventListener('input', updateCursor);
+    editor.addEventListener('click', updateCursor);
+
+    function updateCursor() {
+      const pos = editor.selectionStart;
+      const lines = editor.value.substr(0, pos).split("\n");
+      const line = lines.length;
+      const col = lines[lines.length - 1].length + 1;
+      cursorPos.textContent = `Ln ${line}, Col ${col}`;
+    }
+
+    function newPage() {
+      const name = prompt("Page name:", `page${Object.keys(pages).length + 1}.txt`);
+      if (!name || name === 'Overview') return;
+      pages[name] = "";
+      addPageToList(name);
+      switchPage(name);
+    }
+
+    function addPageToList(name, folderName = null) {
+      if (folderName) {
+        // Add to existing folder structure
+        if (!folders[folderName]) {
+          folders[folderName] = [];
+        }
+        folders[folderName].push(name);
+        
+        // Find the folder's contents ul and add the item
+        const folderElements = document.querySelectorAll('.folder-name');
+        for (const folder of folderElements) {
+          if (folder.textContent === folderName) {
+            const folderContents = folder.nextElementSibling;
+            const li = document.createElement('li');
+            li.textContent = name;
+            li.className = 'folder-item';
+            li.title = name;
+            li.onclick = () => {
+              switchPage(`${folderName}/${name}`);
+            };
+            folderContents.appendChild(li);
+            return;
+          }
+        }
+      } else {
+        // Regular file
+        const li = document.createElement('li');
+        li.textContent = name;
+        li.title = name;
+        li.onclick = () => switchPage(name);
+        pageList.appendChild(li);
+      }
+    }
+
+    function switchPage(name) {
+      if (currentPage && currentPage !== 'Overview') pages[currentPage] = editor.value;
+      currentPage = name;
+      fileName.textContent = name.includes('/') ? name.split('/').pop() : name;
+
+      // Update active state for all items
+      const allItems = document.querySelectorAll('#pageList li');
+      allItems.forEach(li => {
+        li.classList.remove('active');
+        
+        // Check if this is the active item
+        if (name.includes('/')) {
+          // For folder items
+          const folderName = name.split('/')[0];
+          const fileName = name.split('/')[1];
+          if (li.classList.contains('folder-item') && li.textContent === fileName) {
+            li.classList.add('active');
+          } else if (li.classList.contains('folder-name') && li.textContent === folderName) {
+            li.classList.add('expanded');
+          }
+        } else {
+          // For regular files
+          if (li.textContent === name) {
+            li.classList.add('active');
+          }
+        }
+      });
+
+      if (name === 'Overview') {
+        editor.style.display = 'none';
+        readme.style.display = 'block';
+        readme.innerHTML = `
+          <h1>&#x2728; Let's build something amazing</h2>
+          <br>
+          <ul style="list-style: none;" class="links">
+            <li><a href="#" onclick="newPage()">📝 <span class="underline"> Create new file</span></a></li>
+            <li><a href="#" onclick="openFiles()">🧩 <span class="underline"> Open files</span></a></li>
+            <li><a href="#" onclick="uploadFolder()">📁 <span class="underline"> Open folder</span></a></li>
+          <!--  <li><a href="#" onclick="saveFile()">💾 <span class="underline"> Save your current file</span></a></li>  -->
+          </ul>
+          <br>
+         
+
+          <h2>&#128220; Update Log</h3>
+          <br>
+          <ul class="updateLog">
+           <li>Multiple file editing</li>
+          <li>Folder structure with expandable sections</li>
+       <li>Line and column position tracking</li>
+<br>
+       <h2>&#x1F9E9; Keyboard Shortcuts</h3>
+         <br>
+          <pre>
+Ctrl+O / Cmd+O    - Open files
+Ctrl+S / Cmd+S    - Save file
+Ctrl+W / Cmd+W    - Close file</pre>
+          
+
+
+          </ul>
+        `;
+      } else {
+        editor.style.display = 'block';
+        readme.style.display = 'none';
+        editor.value = pages[name];
+        updateCursor();
+      }
+    }
+
+    function saveFile() {
+      if (!currentPage || currentPage === 'Overview') return alert("Cannot save 'Overview' ");
+      const blob = new Blob([editor.value], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = currentPage.includes('/') ? currentPage.split('/').pop() : currentPage;
+      a.click();
+    }
+
+    function openFiles() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.multiple = true;
+      input.accept = ".txt,.html,.js,.css,.md,.json,.py,.java,.php,.xml,.csv";
+      input.onchange = e => {
+        const files = e.target.files;
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const reader = new FileReader();
+          reader.onload = () => {
+            const name = file.name;
+            pages[name] = reader.result;
+            addPageToList(name);
+            if (i === 0) switchPage(name); // Switch to first file
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
+
+    function uploadFolder() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.webkitdirectory = true;
+      input.onchange = e => {
+        const files = e.target.files;
+        if (files.length === 0) return;
+        
+        const folderName = files[0].webkitRelativePath.split('/')[0];
+        
+        // Create folder structure
+        const folderLi = document.createElement('li');
+        folderLi.textContent = folderName;
+        folderLi.className = 'folder-name';
+        folderLi.title = folderName;
+        
+        // Create container for folder items
+        const folderContents = document.createElement('ul');
+        folderContents.className = 'folder-contents';
+        
+        // Add click handler to toggle folder
+        folderLi.onclick = (e) => {
+          e.stopPropagation();
+          folderLi.classList.toggle('expanded');
+        };
+        
+        pageList.appendChild(folderLi);
+        pageList.appendChild(folderContents);
+        
+  
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const reader = new FileReader();
+          reader.onload = () => {
+            const name = file.name;
+            const fullPath = `${folderName}/${name}`;
+            pages[fullPath] = reader.result;
+            addPageToList(name, folderName);
+            if (i === 0) switchPage(fullPath);
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
+
+    function closePage() {
+      if (currentPage === 'Overview') return alert("Cannot close Overview");
+      
+      let isFolderItem = false;
+      let folderName = null;
+      let fileName = null;
+      
+      if (currentPage.includes('/')) {
+        isFolderItem = true;
+        [folderName, fileName] = currentPage.split('/');
+      }
+      
+      delete pages[currentPage];
+      
+      if (isFolderItem && folderName) {
+        folders[folderName] = folders[folderName].filter(f => f !== fileName);
+        
+       
+        const folderItems = document.querySelectorAll('.folder-item');
+        for (const item of folderItems) {
+          if (item.textContent === fileName) {
+            item.remove();
+            break;
+          }
+        }
+        
+      
+        if (folders[folderName].length === 0) {
+          delete folders[folderName];
+          const folderElements = document.querySelectorAll('.folder-name');
+          for (const folder of folderElements) {
+            if (folder.textContent === folderName) {
+              folder.nextElementSibling.remove();
+              folder.remove(); 
+              break;
+            }
+          }
+        }
+      } else {
+       
+        const lis = [...pageList.children];
+        lis.forEach(li => {
+          if (li.textContent === currentPage) li.remove();
+        });
+      }
+      
+      switchPage('Overview');
+    }
+
+  
+    document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+    switch (e.key) {
+      case 'n': case 'N':
+        if (e.shiftKey) { 
+          e.preventDefault();
+          newPage();
+          break;
+        }
+      
+        break;
+      case 'o': case 'O':
+        e.preventDefault();
+        openFiles();
+        break;
+      case 's': case 'S':
+        e.preventDefault();
+        saveFile();
+        break;
+      case 'w': case 'W':
+        e.preventDefault();
+        closePage();
+        break;
+    }
+  }
+});
+
+   
+    pages['Overview'] = "";
+    const readmeLi = document.createElement('li');
+    readmeLi.textContent = 'Overview'
+    readmeLi.title = 'Overview';
+    readmeLi.onclick = () => switchPage('Overview');
+    pageList.appendChild(readmeLi);
+    switchPage('Overview');
+  </script>
+</body>
+</html>
