@@ -293,7 +293,7 @@ editor.style.caretColor = "white";
     }
 
     function newPage() {
-      const name = prompt("Page name:", `page${Object.keys(pages).length + 1}.txt`);
+      const name = prompt("Create new file", `page${Object.keys(pages).length + 1}.txt`);
       if (!name || name === 'Overview') return;
       pages[name] = "";
       addPageToList(name);
@@ -437,7 +437,7 @@ function renameFile() {
     return;
   }
 
-  const newName = prompt("Rename this file", currentPage.split('/').pop());
+  const newName = prompt("Rename file", currentPage.split('/').pop());
   if (!newName || newName === currentPage || newName === 'Overview') return;
 
   let newKey = newName;
