@@ -74,19 +74,57 @@
       background: #1e1e2f;
       padding: 10px;
       overflow: auto;
+      position: relative;
     }
-    textarea, .readme-container {
+    .editor-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    #editor {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       background: transparent;
+      color:white;
+      caret-color: white;
       border: none;
-      color: #f8f8f2;
       font-family: monospace;
       font-size: 14px;
       outline: none;
       resize: none;
+      white-space: pre;
+      padding-bottom:20px;
+      overflow: scroll;
+      padding: 10px;
+      line-height:1.2;
+      z-index: 1;
+      opacity: 1;
+    }
+    #highlight {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding-bottom:20px;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      font-family: monospace;
+      font-size: 14px;
+      line-height: 1.2;
+      padding: 10px;
+      border: none;
+      white-space: pre;
+      overflow: scroll;
+      pointer-events: none;
+      z-index: 2;
+      color: transparent;
     }
     .readme-container {
+      width: 100%;
+      height: 100%;
       padding: 10px;
     }
     .readme-container a {
@@ -166,8 +204,11 @@
       <h3>Pages</h3>
       <ul id="pageList"></ul>
     </div>
-    <div class="code-area">
-      <textarea id="editor"></textarea>
+    <div class="code-area" id="code-area">
+      <div class="editor-container" id="code-editor">
+        <pre id="highlight"></pre>
+        <textarea id="editor" spellcheck="false"></textarea>
+      </div>
       <div id="readme" class="readme-container" style="display:none"></div>
     </div>
   </div>
@@ -176,8 +217,12 @@
     <span id="cursorPos">Ln 1, Col 1</span>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/xml.min.js"></script>
   <script>
     const editor = document.getElementById('editor');
+    const highlightElement = document.getElementById('highlight');
     const readme = document.getElementById('readme');
     const cursorPos = document.getElementById('cursorPos');
     const pageList = document.getElementById('pageList');
@@ -185,8 +230,59 @@
     let pages = {};
     let currentPage = '';
     let folders = {};
-    editor.addEventListener('input', updateCursor);
+
+    // Initialize Highlight.js
+    hljs.configure({
+      ignoreUnescapedHTML: true,
+      languages: ['javascript', 'css', 'xml']
+    });
+
+    // Set up event listeners
+    editor.addEventListener('input', handleEditorUpdate);
     editor.addEventListener('click', updateCursor);
+    editor.addEventListener('scroll', syncScroll);
+    editor.addEventListener('keydown', handleKeyDown);
+
+    function handleEditorUpdate() {
+      updateCursor();
+      updateHighlighting();
+      syncScroll();
+    }
+
+    function syncScroll() {
+      highlightElement.scrollTop = editor.scrollTop;
+      highlightElement.scrollLeft = editor.scrollLeft;
+    }
+
+    function updateHighlighting() {
+    if (!currentPage || currentPage === 'Overview') return;
+    
+    const extension = currentPage.split('.').pop().toLowerCase();
+    const code = editor.value;
+    
+    let language = 'plaintext';
+    if (extension === 'js') {
+        language = 'javascript';
+        yourSuccessFunction();
+    } else if (extension === 'css') {
+        language = 'css';
+        yourSuccessFunction(); 
+    } else if (extension === 'html') {
+        language = 'xml';
+        yourSuccessFunction(); 
+    }
+    
+    highlightElement.textContent = code;
+    highlightElement.className = `language-${language}`;
+    hljs.highlightElement(highlightElement);
+}
+
+function yourSuccessFunction() {
+  const editor = document.getElementById("editor");
+editor.style.backgroundColor = "transparent"; 
+editor.style.caretColor = "white";  
+}
+
     function updateCursor() {
       const pos = editor.selectionStart;
       const lines = editor.value.substr(0, pos).split("\n");
@@ -194,6 +290,7 @@
       const col = lines[lines.length - 1].length + 1;
       cursorPos.textContent = `Ln ${line}, Col ${col}`;
     }
+
     function newPage() {
       const name = prompt("Page name:", `page${Object.keys(pages).length + 1}.txt`);
       if (!name || name === 'Overview') return;
@@ -201,6 +298,7 @@
       addPageToList(name);
       switchPage(name);
     }
+
     function addPageToList(name, folderName = null) {
       if (folderName) {
         if (!folders[folderName]) {
@@ -215,9 +313,7 @@
             li.textContent = name;
             li.className = 'folder-item';
             li.title = name;
-            li.onclick = () => {
-              switchPage(`${folderName}/${name}`);
-            };
+            li.onclick = () => switchPage(`${folderName}/${name}`);
             folderContents.appendChild(li);
             return;
           }
@@ -230,42 +326,47 @@
         pageList.appendChild(li);
       }
     }
+
     function switchPage(name) {
-      if (currentPage && currentPage !== 'Overview') pages[currentPage] = editor.value;
+      // Save current content before switching
+      if (currentPage && currentPage !== 'Overview') {
+        pages[currentPage] = editor.value;
+      }
+
       currentPage = name;
       fileName.textContent = name.includes('/') ? name.split('/').pop() : name;
-      const allItems = document.querySelectorAll('#pageList li');
-      allItems.forEach(li => {
+      
+      document.querySelectorAll('#pageList li').forEach(li => {
         li.classList.remove('active');
       });
+      
       if (name.includes('/')) {
-        const folderName = name.split('/')[0];
-        const file = name.split('/')[1];
-        const folderElements = document.querySelectorAll('.folder-name');
-        const fileElements = document.querySelectorAll('.folder-item');
-        folderElements.forEach(folder => {
+        const [folderName, fileName] = name.split('/');
+        document.querySelectorAll('.folder-name').forEach(folder => {
           if (folder.textContent === folderName) {
             folder.classList.add('expanded');
           }
         });
-        fileElements.forEach(item => {
-          if (item.textContent === file) {
+        document.querySelectorAll('.folder-item').forEach(item => {
+          if (item.textContent === fileName) {
             item.classList.add('active');
           }
         });
       } else {
-        const lis = document.querySelectorAll('#pageList > li:not(.folder-name):not(.folder-item)');
-        lis.forEach(li => {
+        document.querySelectorAll('#pageList > li:not(.folder-name):not(.folder-item)').forEach(li => {
           if (li.textContent === name) {
             li.classList.add('active');
           }
         });
       }
+
       if (name === 'Overview') {
         editor.style.display = 'none';
+        document.getElementById("code-editor").style.display = "none";
+        highlightElement.style.display = 'none';
         readme.style.display = 'block';
         readme.innerHTML = `
-          <h1>&#x2728; Let's build something amazing</h2>
+          <h1>&#x2728; Let's build something amazing</h1>
           <br>
           <ul style="list-style: none;" class="links">
             <li><a href="#" onclick="newPage()">📝 <span class="underline"> Create new file</span></a></li>
@@ -273,14 +374,15 @@
             <li><a href="#" onclick="uploadFolder()">📁 <span class="underline"> Open folder</span></a></li>
           </ul>
           <br>
-          <h2>&#128220; Update Log</h3>
+          <h2>&#128220; Update Log</h2>
           <br>
           <ul class="updateLog">
             <li>Multiple file editing</li>
             <li>Folder structure with expandable sections</li>
             <li>Line and column position tracking</li>
+            <li>Syntax highlighting for HTML, CSS, and JavaScript</li>
             <br>
-            <h2>&#x1F9E9; Keyboard Shortcuts</h3>
+            <h2>&#x1F9E9; Keyboard Shortcuts</h2>
             <br>
             <pre>
 Ctrl+O / Cmd+O    - Open files
@@ -289,147 +391,157 @@ Ctrl+W / Cmd+W    - Close file</pre>
           </ul>
         `;
       } else {
+        document.getElementById("code-editor").style.display = "block";
         editor.style.display = 'block';
+        highlightElement.style.display = 'block';
         readme.style.display = 'none';
-        editor.value = pages[name];
+        editor.value = pages[name] || '';
         updateCursor();
+        updateHighlighting();
         editor.focus();
       }
     }
+
     function saveFile() {
-      if (!currentPage || currentPage === 'Overview') return alert("Cannot save 'Overview' ");
+      if (!currentPage || currentPage === 'Overview') return alert("Cannot save 'Overview'");
       const blob = new Blob([editor.value], { type: "text/plain" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = currentPage.includes('/') ? currentPage.split('/').pop() : currentPage;
       a.click();
     }
+
     function openFiles() {
       const input = document.createElement("input");
       input.type = "file";
       input.multiple = true;
       input.accept = ".txt,.html,.js,.css,.md,.json,.py,.java,.php,.xml,.csv";
       input.onchange = e => {
-        const files = e.target.files;
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
+        Array.from(e.target.files).forEach((file, i) => {
           const reader = new FileReader();
           reader.onload = () => {
-            const name = file.name;
-            pages[name] = reader.result;
-            addPageToList(name);
-            if (i === 0) switchPage(name);
+            pages[file.name] = reader.result;
+            addPageToList(file.name);
+            if (i === 0) switchPage(file.name);
           };
           reader.readAsText(file);
-        }
+        });
       };
       input.click();
     }
+
     function uploadFolder() {
       const input = document.createElement("input");
       input.type = "file";
       input.webkitdirectory = true;
       input.onchange = e => {
-        const files = e.target.files;
+        const files = Array.from(e.target.files);
         if (files.length === 0) return;
+        
         const folderName = files[0].webkitRelativePath.split('/')[0];
         const folderLi = document.createElement('li');
         folderLi.textContent = folderName;
         folderLi.className = 'folder-name';
         folderLi.title = folderName;
+        
         const folderContents = document.createElement('ul');
         folderContents.className = 'folder-contents';
+        
         folderLi.onclick = (e) => {
           e.stopPropagation();
           folderLi.classList.toggle('expanded');
         };
+        
         pageList.appendChild(folderLi);
         pageList.appendChild(folderContents);
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
+
+        files.forEach((file, i) => {
           const reader = new FileReader();
           reader.onload = () => {
-            const name = file.name;
-            const fullPath = `${folderName}/${name}`;
+            const fullPath = `${folderName}/${file.name}`;
             pages[fullPath] = reader.result;
-            addPageToList(name, folderName);
+            addPageToList(file.name, folderName);
             if (i === 0) switchPage(fullPath);
           };
           reader.readAsText(file);
-        }
+        });
       };
       input.click();
     }
+
     function closePage() {
       if (currentPage === 'Overview') return alert("Cannot close 'Overview'");
-      let isFolderItem = false;
-      let folderName = null;
-      let fileName = null;
+      
       if (currentPage.includes('/')) {
-        isFolderItem = true;
-        [folderName, fileName] = currentPage.split('/');
-      }
-      delete pages[currentPage];
-      if (isFolderItem && folderName) {
+        const [folderName, fileName] = currentPage.split('/');
         folders[folderName] = folders[folderName].filter(f => f !== fileName);
-        const folderItems = document.querySelectorAll('.folder-item');
-        for (const item of folderItems) {
+        
+        // Remove from DOM
+        document.querySelectorAll('.folder-item').forEach(item => {
           if (item.textContent === fileName) {
             item.remove();
-            break;
           }
-        }
+        });
+
+        // Remove folder if empty
         if (folders[folderName].length === 0) {
           delete folders[folderName];
-          const folderElements = document.querySelectorAll('.folder-name');
-          for (const folder of folderElements) {
+          document.querySelectorAll('.folder-name').forEach(folder => {
             if (folder.textContent === folderName) {
               folder.nextElementSibling.remove();
               folder.remove();
-              break;
             }
-          }
+          });
         }
       } else {
-        const lis = [...pageList.children];
-        lis.forEach(li => {
-          if (li.textContent === currentPage) li.remove();
+        document.querySelectorAll('#pageList > li:not(.folder-name):not(.folder-item)').forEach(li => {
+          if (li.textContent === currentPage) {
+            li.remove();
+          }
         });
       }
+      
+      delete pages[currentPage];
       switchPage('Overview');
     }
-    document.addEventListener('keydown', (e) => {
+
+    function handleKeyDown(e) {
       if ((e.ctrlKey || e.metaKey) && !e.altKey) {
-        switch (e.key) {
-          case 'n': case 'N':
-            if (e.shiftKey) {
-              e.preventDefault();
-              newPage();
-              break;
-            }
-            break;
-          case 'o': case 'O':
+        switch (e.key.toLowerCase()) {
+          case 'o':
             e.preventDefault();
             openFiles();
             break;
-          case 's': case 'S':
+          case 's':
             e.preventDefault();
             saveFile();
             break;
-          case 'w': case 'W':
+          case 'w':
             e.preventDefault();
             closePage();
             break;
+          case 'n':
+            if (e.shiftKey) {
+              e.preventDefault();
+              newPage();
+            }
+            break;
         }
       }
-    });
-    pages['Overview'] = "";
-    const readmeLi = document.createElement('li');
-    readmeLi.textContent = 'Overview'
-    readmeLi.title = 'Overview';
-    readmeLi.onclick = () => switchPage('Overview');
-    pageList.appendChild(readmeLi);
-    switchPage('Overview');
+    }
+
+    // Initialize the editor
+    function initEditor() {
+      pages['Overview'] = "";
+      const readmeLi = document.createElement('li');
+      readmeLi.textContent = 'Overview';
+      readmeLi.title = 'Overview';
+      readmeLi.onclick = () => switchPage('Overview');
+      pageList.appendChild(readmeLi);
+      switchPage('Overview');
+    }
+
+    initEditor();
   </script>
 </body>
 </html>
