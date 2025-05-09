@@ -197,6 +197,7 @@
     <button onclick="openFiles()">Open Files</button>
     <button onclick="uploadFolder()">Open Folder</button>
     <button onclick="saveFile()">Save</button>
+ <button onclick="renameFile()">Rename</button>
     <button onclick="closePage()">Close File</button>
   </div>
   <div class="editor-wrapper">
@@ -429,6 +430,43 @@ Ctrl+W / Cmd+W    - Close file</pre>
       };
       input.click();
     }
+
+function renameFile() {
+  if (!currentPage || currentPage === 'Overview') {
+    alert("Cannot rename 'Overview'");
+    return;
+  }
+
+  const newName = prompt("Rename this file", currentPage.split('/').pop());
+  if (!newName || newName === currentPage || newName === 'Overview') return;
+
+  let newKey = newName;
+  const isInFolder = currentPage.includes('/');
+  if (isInFolder) {
+    const folderName = currentPage.split('/')[0];
+    newKey = `${folderName}/${newName}`;
+  }
+
+  if (pages[newKey]) {
+    alert("A file with that name already exists.");
+    return;
+  }
+
+  pages[newKey] = pages[currentPage];
+  delete pages[currentPage];
+
+  const items = document.querySelectorAll('#pageList li');
+  items.forEach(item => {
+    if (item.textContent === currentPage.split('/').pop()) {
+      item.textContent = newName;
+      item.onclick = () => switchPage(newKey);
+      item.title = newKey;
+    }
+  });
+
+  switchPage(newKey);
+}
+
 
     function uploadFolder() {
       const input = document.createElement("input");
