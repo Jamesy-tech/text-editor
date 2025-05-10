@@ -374,7 +374,7 @@ editor.style.caretColor = "white";
             <li><a href="#" onclick="newPage()">📝 <span class="underline"> Create new file</span></a></li>
             <li><a href="#" onclick="openFiles()">🧩 <span class="underline"> Open files</span></a></li>
             <li><a href="#" onclick="uploadFolder()">📁 <span class="underline"> Open folder</span></a></li>
-             <li><a href="#" onclick="uploadFolder()">❌ <span class="underline"> Quit</span></a></li>
+             <li><a href="#" onclick="quit()">❌ <span class="underline"> Quit</span></a></li>
             
           </ul>
           <br>
@@ -404,6 +404,13 @@ Ctrl+W / Cmd+W    - Close file</pre>
         updateHighlighting();
         editor.focus();
       }
+    }
+
+    function quit() {
+      window.close()
+      setTimeout(() => {
+        window.location.href = "https://jamesy-tech.github.io/jamesy-creator/"
+      }, 100);
     }
 
     function saveFile() {
