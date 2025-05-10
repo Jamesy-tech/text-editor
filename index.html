@@ -223,6 +223,10 @@ font-size:16px;
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/xml.min.js"></script>
   <script>
+
+
+    
+    
     const editor = document.getElementById('editor');
     const highlightElement = document.getElementById('highlight');
     const readme = document.getElementById('readme');
@@ -369,11 +373,14 @@ editor.style.caretColor = "white";
         readme.style.display = 'block';
         readme.innerHTML = `
           <h1>&#x2728; Let's build something amazing</h1>
+          <span>&#x2728; Welcome to Jamesy Creator Code</span>
           <br>
           <ul style="list-style: none;" class="links">
             <li><a href="#" onclick="newPage()">📝 <span class="underline"> Create new file</span></a></li>
             <li><a href="#" onclick="openFiles()">🧩 <span class="underline"> Open files</span></a></li>
             <li><a href="#" onclick="uploadFolder()">📁 <span class="underline"> Open folder</span></a></li>
+            <li><a href="#" onclick="quit()">📁 <span class="underline"> Quit</span></a></li>
+            
           </ul>
           <br>
           <h2>&#128220; Update Log</h2>
@@ -581,6 +588,14 @@ function renameFile() {
     }
 
     initEditor();
+
+
+     function quit() {
+    window.close()
+    setTimeout(() => {
+       window.location.href = "https://jamesy-tech.github.io/jamesy-creator/";
+    }, 100);
+  }
   </script>
 </body>
 </html>
