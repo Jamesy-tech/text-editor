@@ -590,6 +590,15 @@ function renameFile() {
     }
 
     initEditor();
+
+
+    const user = localStorage.getItem("username");
+
+if (!user || user.toLowerCase() === "guest") {
+  window.location.href = "https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/login.html";
+}
+
+    
   </script>
 </body>
 </html>
