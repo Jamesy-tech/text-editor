@@ -4,8 +4,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai.min.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="scripts.png">
-  <title>Code</title>
+  <link rel="icon" href="icon.png">
+  <title>Code - Jamesy Creator</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -14,6 +14,7 @@
       color: #ccc;
       height: 100vh;
       display: flex;
+overflow-x:none;
       flex-direction: column;
     }
     .menu-bar {
@@ -74,12 +75,14 @@
       background: #1e1e2f;
       padding: 10px;
       overflow: auto;
+overflow-x:hidden;
       position: relative;
     }
     .editor-container {
       position: relative;
       width: 100%;
       height: 100%;
+overflow-x:hidden;
     }
     #editor {
       position: absolute;
@@ -95,9 +98,11 @@
       font-size: 14px;
       outline: none;
       resize: none;
-      white-space: pre;
+       white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: hidden;
+  overflow-y: auto;
       padding-bottom:20px;
-      overflow: scroll;
       padding: 10px;
       line-height:1.2;
       z-index: 1;
@@ -116,8 +121,10 @@
       line-height: 1.2;
       padding: 10px;
       border: none;
-      white-space: pre;
-      overflow: scroll;
+      white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: hidden;
+  overflow-y: auto;
       pointer-events: none;
       z-index: 2;
       color: transparent;
@@ -198,7 +205,7 @@ font-size:16px;
     <button onclick="openFiles()">Open Files</button>
     <button onclick="uploadFolder()">Open Folder</button>
     <button onclick="saveFile()">Save</button>
- <button onclick="renameFile()">Rename</button>
+<!-- <button onclick="renameFile()" id="renameButton">Rename</button>  -->
     <button onclick="closePage()">Close File</button>
   </div>
   <div class="editor-wrapper">
@@ -441,41 +448,70 @@ Ctrl+W / Cmd+W    - Close file</pre>
       input.click();
     }
 
-function renameFile() {
+function renameFolder() {
   if (!currentPage || currentPage === 'Overview') {
     alert("Cannot rename 'Overview'");
     return;
   }
 
-  const newName = prompt("Rename file", currentPage.split('/').pop());
-  if (!newName || newName === currentPage || newName === 'Overview') return;
+  const oldFolderPath = currentPage;
+  const oldFolderName = oldFolderPath.split('/').pop();  // Get the folder name
+  const parentPath = oldFolderPath.slice(0, -oldFolderName.length - 1); // Get the parent folder
 
-  let newKey = newName;
-  const isInFolder = currentPage.includes('/');
-  if (isInFolder) {
-    const folderName = currentPage.split('/')[0];
-    newKey = `${folderName}/${newName}`;
-  }
+  const newFolderName = prompt("Rename folder", oldFolderName);
+  if (!newFolderName || newFolderName === oldFolderName || newFolderName === 'Overview') return;
 
-  if (pages[newKey]) {
-    alert("A file with that name already exists.");
+  const newFolderPath = parentPath ? `${parentPath}/${newFolderName}` : newFolderName;
+
+  // Check if folder already exists
+  if (folders[newFolderPath]) {
+    alert("A folder with that name already exists.");
     return;
   }
 
-  pages[newKey] = pages[currentPage];
-  delete pages[currentPage];
+  // Move all items from the old folder to the new folder
+  folders[newFolderPath] = [...(folders[oldFolderPath] || [])];
 
-  const items = document.querySelectorAll('#pageList li');
-  items.forEach(item => {
-    if (item.textContent === currentPage.split('/').pop()) {
-      item.textContent = newName;
-      item.onclick = () => switchPage(newKey);
-      item.title = newKey;
+  // Delete the old folder from the folders map
+  delete folders[oldFolderPath];
+
+  // Update all pages inside the folder
+  folders[newFolderPath].forEach(fileName => {
+    const oldKey = `${oldFolderPath}/${fileName}`;
+    const newKey = `${newFolderPath}/${fileName}`;
+
+    // Move the page contents
+    if (pages[oldKey]) {
+      pages[newKey] = pages[oldKey];
+      delete pages[oldKey];
+
+      // Update UI
+      const items = document.querySelectorAll('#pageList li');
+      items.forEach(item => {
+        if (item.title === oldKey) {
+          item.title = newKey;
+          item.onclick = () => switchPage(newKey);
+        }
+      });
     }
   });
 
-  switchPage(newKey);
+  // Update the UI for the folder rename (if in the list)
+  const items = document.querySelectorAll('#pageList li');
+  items.forEach(item => {
+    if (item.title === oldFolderPath) {
+      item.textContent = newFolderName;
+      item.title = newFolderPath;
+    }
+  });
+
+  // Finally, set the current page to the new folder path (if it's still the current page)
+  if (currentPage === oldFolderPath) {
+    currentPage = newFolderPath;
+  }
 }
+
+
 
 
     function uploadFolder() {
@@ -598,7 +634,7 @@ if (!user || user.toLowerCase() === "guest") {
   window.location.href = "https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/login.html";
 }
 
-    
+
   </script>
 </body>
 </html>
