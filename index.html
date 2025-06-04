@@ -413,12 +413,13 @@ Ctrl+W / Cmd+W    - Close file</pre>
       }
     }
 
-    function quit() {
-      window.close()
-      setTimeout(() => {
-        window.location.href = "https://jamesy-tech.github.io/jamesy-creator/"
-      }, 100);
-    }
+
+  function quit() {
+//    window.close()
+  //  setTimeout(() => {
+       window.location.href = "https://jamesy-tech.github.io/jamesy-creator/";
+ //   }, 100);
+  }
 
     function saveFile() {
       if (!currentPage || currentPage === 'Overview') return alert("Cannot save 'Overview'");
