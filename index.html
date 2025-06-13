@@ -201,6 +201,7 @@ font-size:16px;
 </head>
 <body>
   <div class="menu-bar">
+      <button id="window" onclick="reOpen()">Fullscreen</button>
     <button onclick="newPage()">New</button>
     <button onclick="openFiles()">Open Files</button>
     <button onclick="uploadFolder()">Open Folder</button>
@@ -225,6 +226,21 @@ font-size:16px;
     <span id="fileName">Overview</span>
     <span id="cursorPos">Ln 1, Col 1</span>
   </div>
+
+  <style>
+  #window {
+  display:none;
+}
+</style>
+    <script>
+ if (new URLSearchParams(window.location.search).get("event") === "window") document.getElementById("window").style.display = "block";
+ function reOpen()  {
+  window.top.location.href = "https://jamesy-tech.github.io/text-editor/"
+ }
+
+ reOpen()
+ </script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
