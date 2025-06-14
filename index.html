@@ -206,6 +206,7 @@ font-size:16px;
     <button onclick="openFiles()">Open Files</button>
     <button onclick="uploadFolder()">Open Folder</button>
     <button onclick="saveFile()">Save</button>
+        <button onclick="quickRun()">Quick Run</button>
 <!-- <button onclick="renameFile()" id="renameButton">Rename</button>  -->
     <button onclick="closePage()">Close File</button>
   </div>
@@ -248,6 +249,8 @@ font-size:16px;
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/xml.min.js"></script>
   <script>
+
+   
     const editor = document.getElementById('editor');
     const highlightElement = document.getElementById('highlight');
     const readme = document.getElementById('readme');
@@ -258,13 +261,13 @@ font-size:16px;
     let currentPage = '';
     let folders = {};
 
-    // Initialize Highlight.js
+
     hljs.configure({
       ignoreUnescapedHTML: true,
       languages: ['javascript', 'css', 'xml']
     });
 
-    // Set up event listeners
+
     editor.addEventListener('input', handleEditorUpdate);
     editor.addEventListener('click', updateCursor);
     editor.addEventListener('scroll', syncScroll);
@@ -281,10 +284,36 @@ font-size:16px;
       highlightElement.scrollLeft = editor.scrollLeft;
     }
 
+   
+
+function quickRun() {
+  const file_extension = currentPage.split('.').pop().toLowerCase();
+  const content = document.getElementById("editor").value;
+
+  if (file_extension === 'html') {
+    const blob = new Blob([content], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    
+  } else if (file_extension === 'md') {
+    sessionStorage.setItem("md_content", content);
+    sessionStorage.setItem("from_editor", "true");
+    window.open("https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/view_md.html");
+    
+  } else {
+    alert("You can only quick run a .html or .md file!");
+  }
+}
+
+
+
     function updateHighlighting() {
+
+        const extension = currentPage.split('.').pop().toLowerCase();
+
     if (!currentPage || currentPage === 'Overview') return;
     
-    const extension = currentPage.split('.').pop().toLowerCase();
+   
     const code = editor.value;
     
     let language = 'plaintext';
@@ -472,6 +501,9 @@ function renameFolder() {
     alert("Cannot rename 'Overview'");
     return;
   }
+
+
+
 
   const oldFolderPath = currentPage;
   const oldFolderName = oldFolderPath.split('/').pop();  // Get the folder name
