@@ -296,8 +296,8 @@ function quickRun() {
     window.open(url, "_blank");
     
   } else if (file_extension === 'md') {
-    sessionStorage.setItem("md_content", content);
-    sessionStorage.setItem("from_editor", "true");
+    localStorage.setItem("md_content", content);
+    localStorage.setItem("from_editor", "true");
     window.open("https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/view_md.html");
     
   } else {
