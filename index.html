@@ -4,6 +4,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai.min.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <link rel="icon" href="icon.png">
   <title>Code</title>
   <style>
@@ -200,6 +203,71 @@ font-size:16px;
   </style>
 </head>
 <body>
+
+
+   <div class="jamesy-creator">
+  <style>
+    .jamesy-creator {
+      height: 40px;
+      position: sticky;
+      margin-bottom:0px;
+      font-family:"Mulish";
+      padding:5px;
+      display:flex;
+      padding-top:7px;
+      padding-left:12px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .icon_jamesy-creator {
+      height: 90%;
+      cursor:default;
+    }
+
+    .title_jamesy-creator {
+       color:white;
+       cursor:default;
+       margin-left:7px;
+       margin-right:25px;
+       margin-top:2px;
+    }
+
+    .button_jamesy-creator {
+     background:transparent;
+     border:none;
+     outline: none;
+     color:white;
+     padding:0px;
+     margin-left:20px;
+     cursor:pointer;
+     text-decoration: none;
+     margin-top:2px;
+     transition: 0.2s;
+    }
+    
+    .button_jamesy-creator:hover {
+        color:gold;
+    }
+
+  </style>
+  <img src="shapes.png" class="icon_jamesy-creator">
+  <span class="title_jamesy-creator" id="title_jamesy-creator">Jamesy Creator</span>
+
+  <a class="button_jamesy-creator" href="https://jamesy-tech.github.io/jamesy-creator/">Home</a>
+    <a class="button_jamesy-creator" href="https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/index.html#apps">Apps</a>
+      <a class="button_jamesy-creator" href="https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/index.html#profile">Profile</a>
+        <a class="button_jamesy-creator" href="https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/index.html#account">Account</a>
+
+        <script>
+
+            const title = document.title
+
+            document.getElementById("title_jamesy-creator").textContent = title
+
+        </script>
+
+</div>
+
+
   <div class="menu-bar">
       <button id="window" onclick="reOpen()">Fullscreen</button>
     <button onclick="newPage()">New</button>
@@ -428,7 +496,7 @@ editor.style.caretColor = "white";
             <li><a href="#" onclick="newPage()">📝 <span class="underline"> Create new file</span></a></li>
             <li><a href="#" onclick="openFiles()">🧩 <span class="underline"> Open files</span></a></li>
             <li><a href="#" onclick="uploadFolder()">📁 <span class="underline"> Open folder</span></a></li>
-             <li><a href="#" onclick="quit()">❌ <span class="underline"> Exit</span></a></li>
+             <li><a href="#" onclick="quit()">❌ <span class="underline"> Close app</span></a></li>
             
           </ul>
           <br>
