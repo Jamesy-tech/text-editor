@@ -530,8 +530,12 @@ Ctrl+W / Cmd+W    - Close file</pre>
     }
 
 function importFromJamscripts() {
+  const redirectUrl = encodeURIComponent(
+    "https://jamesy-tech.github.io/BookUI/dashboard.html?page=jamscripts&import=true&return=https://jamesy-tech.github.io/text-editor"
+  );
+
   window.location.href =
-    "https://jamesy-tech.github.io/BookUI/dashboard.html?page=jamscripts&import=true&return=https://jamesy-tech.github.io/text-editor";
+    "https://jamesy-tech.github.io/protect?from=scripts&redirect=" + redirectUrl;
 }
 
   function quit() {
