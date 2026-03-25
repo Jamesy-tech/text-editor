@@ -496,6 +496,7 @@ editor.style.caretColor = "white";
             <li><a href="#" onclick="newPage()">📝 <span class="underline"> Create new file</span></a></li>
             <li><a href="#" onclick="openFiles()">🧩 <span class="underline"> Open files</span></a></li>
             <li><a href="#" onclick="uploadFolder()">📁 <span class="underline"> Open folder</span></a></li>
+            <li><a href="#" onclick="importFromJamscripts()">📥 <span class="underline">Import from Jamscripts</span></a></li>
              <li><a href="#" onclick="quit()">❌ <span class="underline"> Close app</span></a></li>
             
           </ul>
@@ -528,6 +529,9 @@ Ctrl+W / Cmd+W    - Close file</pre>
       }
     }
 
+    function importFromJamscripts() {
+      window.location.href = "https://jamesy-tech.github.io/BookUI/dashboard.html?page=jamscripts&import=true"
+    }
 
   function quit() {
 //    window.close()
@@ -752,6 +756,35 @@ function renameFolder() {
 if (!user || user.toLowerCase() === "guest") {
   window.location.href = "https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/login.html";
 }
+
+async function handleImportParam() {
+  const params = new URLSearchParams(window.location.search);
+  const importUrl = params.get("import");
+
+  if (!importUrl) return;
+
+  try {
+    const res = await fetch(importUrl);
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch file");
+    }
+
+    const content = await res.text();
+
+    const fileNameFromUrl = importUrl.split('/').pop() || "imported.html";
+
+    pages[fileNameFromUrl] = content;
+    addPageToList(fileNameFromUrl);
+    switchPage(fileNameFromUrl);
+
+  } catch (err) {
+    alert("Import failed: " + err.message);
+    console.error(err);
+  }
+}
+
+handleImportParam();
 
 
   </script>
