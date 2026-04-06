@@ -316,6 +316,9 @@ font-size:16px;
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/xml.min.js"></script>
+  
+
+  
   <script>
 
    
@@ -756,11 +759,33 @@ function renameFolder() {
     initEditor();
 
 
-    const user = localStorage.getItem("username");
+         const user = localStorage.getItem("username");
 
 if (!user || user.toLowerCase() === "guest") {
   window.location.href = "https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/login.html";
 }
+
+function lock() {
+    const choice = confirm("Lock account? You can log back in again by using your password.")
+    if (choice) {
+    window.location.href = 'https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/loginback.html?path=lock';
+    }
+}
+
+            document.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && event.key === 'q') {
+        lock()
+    }
+});
+
+if (localStorage.getItem('locked') === 'true') {
+  window.location.href = 'https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/loginback.html?path=lock';
+}
+
+if (!localStorage.getItem("userPassword")) {
+    window.location.href = "https://jamesy-tech.github.io/jamesy-creator/Jamesy%20Creator/login.html";
+  }
+
 
 async function handleImportParam() {
   const params = new URLSearchParams(window.location.search);
